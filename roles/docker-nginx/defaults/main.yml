@@ -1,0 +1,7 @@
+---
+nginx_docker_image: nginx
+nginx_docker_image_tag: 1-alpine
+nginx_hosts: []
+nginx_container_name: nginx
+nginx_settings_path: '{{ ansible_user_dir }}/{{ nginx_container_name }}'
+container_memory_limit: 256m

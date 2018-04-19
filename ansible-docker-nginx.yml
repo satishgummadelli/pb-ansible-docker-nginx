@@ -1,0 +1,6 @@
+---
+- hosts: all
+  roles:
+    - role: docker-nginx
+      nginx_files_local_folder: './files/nginx'
+      nginx_configuration_files: ['default.conf']
