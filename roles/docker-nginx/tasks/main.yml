@@ -1,8 +1,6 @@
 ---
-# tasks file for docker-nginx
----
 - name: Create Nginx {{ item }} directory
-  file: path={{ nginx_settings_path }}/{{ item }} state=directory
+  file: path={{ nginx_base_directory }}/{{ item }} state=directory
   with_items:
     - 'conf.d'
     - 'certs'
@@ -10,20 +8,20 @@
 - name: Render hosts nginx configs
   template: >-
     src={{ item.configuration_file }}
-    dest={{ nginx_settings_path }}/conf.d/{{ item.name }}.conf
+    dest={{ nginx_base_directory }}/conf.d/{{ item.name }}.conf
   with_items: '{{ nginx_hosts }}'
   notify:
     - Restart nginx
 
 - name: Create certificate directories
-  file: path={{ nginx_settings_path }}/certs/{{ item.name }} state=directory
+  file: path={{ nginx_base_directory }}/certs/{{ item.name }} state=directory
   with_items: '{{ nginx_hosts }}'
   when: '{{ item.https }}'
 
 - name: Render hosts certificate bundles
   copy:
     src: '{{ item.ssl_certificate_bundle }}'
-    dest: '{{ nginx_settings_path }}/certs/{{ item.name }}/bundle.crt'
+    dest: '{{ nginx_base_directory }}/certs/{{ item.name }}/bundle.crt'
   with_items: '{{ nginx_hosts }}'
   when: '{{ item.https }}'
   notify:
@@ -32,21 +30,21 @@
 - name: Render hosts certificate keys
   copy:
     src: '{{ item.ssl_certificate_key }}'
-    dest: '{{ nginx_settings_path }}/certs/{{ item.name }}/bundle.key'
+    dest: '{{ nginx_base_directory }}/certs/{{ item.name }}/bundle.key'
   with_items: '{{ nginx_hosts }}'
   when: '{{ item.https }}'
   notify:
     - Restart nginx
 
-- name: Run nginx server
+- name: Run nginx server on {{ nginx_docker_image_tag }}
   docker_container:
     name: '{{ nginx_container_name }}'
     image: '{{ nginx_docker_image }}:{{ nginx_docker_image_tag }}'
     state: started
+    ports: '{{ nginx_published_ports }}'
+    exposed_ports: '{{ nginx_exposed_ports }}'
     network_mode: host
     restart_policy: always
     memory: '{{ container_memory_limit }}'
-    volumes:
-      - '{{ nginx_settings_path }}/conf.d:/etc/nginx/conf.d:ro'
-      - '{{ nginx_settings_path }}/certs:/etc/certs:ro'
+    volumes: '{{ nginx_exposed_volumes }}'
   register: nginx_container

@@ -3,5 +3,14 @@ nginx_docker_image: nginx
 nginx_docker_image_tag: 1-alpine
 nginx_hosts: []
 nginx_container_name: nginx
-nginx_settings_path: '{{ ansible_user_dir }}/{{ nginx_container_name }}'
+nginx_base_directory: '{{ ansible_user_dir }}/{{ nginx_container_name }}'
 container_memory_limit: 256m
+nginx_exposed_ports:
+  - '80'
+
+nginx_published_ports:
+  - '80:80'
+
+nginx_exposed_volumes:
+  - '{{ nginx_base_directory }}/conf.d:/etc/nginx/conf.d:ro'
+  - '{{ nginx_base_directory }}/certs:/etc/certs:ro'
